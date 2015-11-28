@@ -1,5 +1,6 @@
 package painter;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 
@@ -9,8 +10,10 @@ import java.awt.image.BufferedImage;
 public abstract class Instrument {
     protected BufferedImage realImage;
     protected Properties properties;
+    private String name;
 
-    public Instrument(Property... property) {
+    public Instrument(String name, Property... property) {
+        this.name = name;
         this.properties = new Properties(property);
     }
 
@@ -22,9 +25,23 @@ public abstract class Instrument {
 
     public abstract Image getDevImage();
 
-    public Properties getProperties() {
+    public final Properties getProperties() {
         return properties;
     }
 
     public abstract Instrument action(LayerManager layerManager, Action action, int x, int y);
+
+    public final String getName() {
+        return name;
+    }
+
+    public Icon getIcon() {
+        return new ImageIcon(getClass().getResource(name + ".png"));
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        Instrument instrument = (Instrument) obj;
+        return instrument.name.equals(name);
+    }
 }
