@@ -7,6 +7,7 @@ import java.awt.image.BufferedImage;
  * Created by airat on 26.11.15.
  */
 public class Layer {
+    private static final BufferedImage NOT_VISIBLE_IMAGE = new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
     private String name;
     private boolean visible = true;
     private Cache<Image> cache;
@@ -15,11 +16,20 @@ public class Layer {
     public Layer(String name, int width, int height) {
         this.name = name;
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
-        cache = new Cache(image, 10);
+        int maxCacheSize = 10;
+        cache = new Cache<Image>(image, maxCacheSize);
+    }
+
+    public boolean isVisible() {
+        return visible;
     }
 
     public void setVisible(boolean visible) {
         this.visible = visible;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public void setName(String name) {
@@ -27,7 +37,7 @@ public class Layer {
     }
 
     public Image getImage() {
-        return visible ? cache.get() : null;
+        return visible ? cache.get() : NOT_VISIBLE_IMAGE;
     }
 
     public void setImage(Image image) {

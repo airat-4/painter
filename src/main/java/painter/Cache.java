@@ -40,7 +40,9 @@ public class Cache<T> {
     }
 
     public T getPrev() {
-        current = current.prev;
+        if (current.prev != null) {
+            current = current.prev;
+        }
         return current.t;
     }
 
