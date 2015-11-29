@@ -11,9 +11,11 @@ public abstract class Instrument {
     protected BufferedImage realImage;
     protected Properties properties;
     private String name;
+    private boolean icon;
 
-    public Instrument(String name, Property... property) {
+    public Instrument(String name, boolean icon, Property... property) {
         this.name = name;
+        this.icon = icon;
         this.properties = new Properties(property);
     }
 

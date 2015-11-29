@@ -12,8 +12,10 @@ public class Layer {
     private boolean visible = true;
     private Cache<Image> cache;
     private boolean deleted;
+    private LayerManager layerManager;
 
-    public Layer(String name, int width, int height) {
+    public Layer(LayerManager layerManager, String name, int width, int height) {
+        this.layerManager = layerManager;
         this.name = name;
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
         int maxCacheSize = 10;
@@ -41,7 +43,9 @@ public class Layer {
     }
 
     public void setImage(Image image) {
+        layerManager.putInCache(this);
         cache.put(image);
+
     }
 
     public void undo() {
@@ -58,6 +62,8 @@ public class Layer {
     }
 
     public void setDeleted(boolean deleted) {
+        if (deleted)
+            layerManager.putInCache(this);
         this.deleted = deleted;
     }
 
