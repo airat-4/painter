@@ -169,11 +169,13 @@ public class LayerManager {
     private Image getRealImage() {
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics graphics = image.getGraphics();
-        for (Layer layer : layers) {
-            graphics.drawImage(layer.getImage(), 0, 0, null);
-            if (layer.equals(currentLayer)) {
-                graphics.drawImage(currentInstrument.getDevImage(), 0, 0, null);
-            }
+        for (Layer layer : layers) {// TODO
+//            graphics.drawImage(layer.getImage(), 0, 0, null);
+//            if (layer.equals(currentLayer)) {
+//                Image img = currentInstrument.getDevImage();
+//                if(img!= null)
+//                    graphics.drawImage(img, 0, 0, null);
+//            }
         }
         return image;
     }

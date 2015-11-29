@@ -1,6 +1,7 @@
 package painter;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
@@ -20,7 +21,7 @@ public class Controller {
     }
 
     public int coordinateScale(int x) {
-        return x * scale / 100;
+        return x * 100 / scale;
     }
 
     public void setScale(int scale) {
@@ -64,10 +65,13 @@ public class Controller {
     }
 
     public Image getImage() {
+        if(layerManager == null){
+            return new BufferedImage(1, 1, BufferedImage.TYPE_4BYTE_ABGR);
+        }
         Image image = layerManager.getImage();
         Image scaledImage = image.getScaledInstance(
-                coordinateScale(image.getWidth(null)),
-                coordinateScale(image.getHeight(null)),
+                image.getWidth(null) * scale / 100,
+                image.getHeight(null) * scale / 100,
                 Image.SCALE_SMOOTH);
         return scaledImage;
     }
