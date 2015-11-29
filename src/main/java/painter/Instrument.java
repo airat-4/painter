@@ -19,10 +19,14 @@ public abstract class Instrument {
         this.properties = new Properties(property);
     }
 
-    public Image flush() {
+    public Image flush(LayerManager layerManager) {
         Image image = realImage;
         realImage = null;
+        if (icon) {
+            layerManager.setArea(null);
+        }
         return image;
+
     }
 
     public abstract Image getDevImage();

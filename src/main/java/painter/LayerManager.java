@@ -126,13 +126,14 @@ public class LayerManager {
         currentLayer.setVisible(visible);
     }
 
-    public void renameLayer(String name) {
+    public boolean renameLayer(String name) {
         for (Layer layer : layers) {
             if (layer.getName().equals(name)) {
-                return;
+                return false;
             }
         }
         currentLayer.setName(name);
+        return true;
     }
 
     public void setInstrument(String name) {
@@ -141,7 +142,7 @@ public class LayerManager {
     }
 
     private void flush() {
-        Image InstrumentImage = currentInstrument.flush();
+        Image InstrumentImage = currentInstrument.flush(this);
         if (InstrumentImage != null) {
             Image image = currentLayer.getImage();
             BufferedImage newImage =
@@ -225,5 +226,8 @@ public class LayerManager {
         return saveAs(file);
     }
 
+    public void setArea(Rectangle area) {
+        this.area = area;
+    }
 
 }
