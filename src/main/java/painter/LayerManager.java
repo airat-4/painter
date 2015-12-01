@@ -2,6 +2,9 @@ package painter;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.File;
@@ -9,6 +12,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import painter.instruments.Pensle;
 
 /**
  * Created by airat on 26.11.15.
@@ -23,7 +28,7 @@ public class LayerManager {
     private int height;
     private Rectangle area;
     private File file;
-    private Instrument currentInstrument;
+    private Instrument currentInstrument = new Pensle();
     private int MAX_CACHE_SIZE = 20;
     public LayerManager(int width, int height) {
         this.width = width;
@@ -34,8 +39,20 @@ public class LayerManager {
         cache = new Cache<>(layer, MAX_CACHE_SIZE);
     }
 
-    public LayerManager() {// TODO создание из буфера обмена
-
+    public LayerManager() throws UnsupportedFlavorException, IOException {
+        Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+        if (t != null && t.isDataFlavorSupported(DataFlavor.imageFlavor)) {
+            Image image = (Image)t.getTransferData(DataFlavor.imageFlavor);
+            width = image.getWidth(null);
+            height = image.getHeight(null);
+            Layer layer = new Layer(this, "Слой " + ++currentLayerId, width, height);
+            currentLayer = layer;
+            layers.add(layer);
+            cache = new Cache<>(layer, MAX_CACHE_SIZE);
+            layer.setImage(image);
+        }else{
+            throw new IOException("буффер обмена пуст");
+        }
     }
 
     public LayerManager(File file) throws IOException {
@@ -45,10 +62,11 @@ public class LayerManager {
             width = image.getWidth();
             height = image.getHeight();
             Layer layer = new Layer(this, "Слой " + ++currentLayerId, width, height);
-            layer.setImage(image);
+            
             currentLayer = layer;
             layers.add(layer);
             cache = new Cache<>(layer, MAX_CACHE_SIZE);
+            layer.setImage(image);
         }
     }
 
@@ -170,12 +188,12 @@ public class LayerManager {
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics graphics = image.getGraphics();
         for (Layer layer : layers) {// TODO
-//            graphics.drawImage(layer.getImage(), 0, 0, null);
-//            if (layer.equals(currentLayer)) {
-//                Image img = currentInstrument.getDevImage();
-//                if(img!= null)
-//                    graphics.drawImage(img, 0, 0, null);
-//            }
+            graphics.drawImage(layer.getImage(), 0, 0, null);
+            if (layer.equals(currentLayer)) {
+                Image img = currentInstrument.getDevImage();
+                if(img!= null)
+                    graphics.drawImage(img, 0, 0, null);
+            }
         }
         return image;
     }
@@ -206,10 +224,9 @@ public class LayerManager {
     }
 
     public boolean saveAs(File file) {
-        if (file.getName().indexOf('.') == -1) {
-            file = new File(file.getPath() + File.pathSeparator + ".png");
-            System.out.println(file.getPath() + File.pathSeparator + ".png");
-        }
+        file = new File(file.getPath()  + ".png");
+        System.out.println(file.getPath() + ".png");
+        
         flush();
         try (FileOutputStream fos = new FileOutputStream(file)) {
             String format = file.getName().substring(file.getName().lastIndexOf(".") + 1, file.getName().length());
@@ -230,6 +247,14 @@ public class LayerManager {
 
     public void setArea(Rectangle area) {
         this.area = area;
+    }
+    
+    public ArrayList<Layer> getLayers(){
+        return layers;
+    }
+    
+    public Layer getCurrentLayer(){
+        return currentLayer;
     }
 
 }

@@ -1,28 +1,39 @@
 package gui;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JCheckBox;
 import javax.swing.JPanel;
 import painter.Controller;
+import painter.Layer;
 
 
 public class GUI extends javax.swing.JFrame {
     Controller controller = Controller.getInstance();
     MyPanel paintPanel = new MyPanel();
+    boolean saveSelection;
+            
     class MyPanel extends JPanel{
         BufferedImage backgraund;
         BufferedImage buffer;
         
         public void setSize(int width, int height){
             super.setSize(width, height);
-            backgraund = new BufferedImage(width, height,BufferedImage.TYPE_4BYTE_ABGR);
+            mainPanel.setPreferredSize(new Dimension(width, height));
             buffer = new BufferedImage(width, height,BufferedImage.TYPE_4BYTE_ABGR);
+            backgraund = new BufferedImage(width, height,BufferedImage.TYPE_4BYTE_ABGR);
             Graphics graphics = backgraund.getGraphics();
             int kubSize = 10;
             graphics.setColor(Color.GRAY);
@@ -64,6 +75,13 @@ public class GUI extends javax.swing.JFrame {
         mainPanel.add(paintPanel);
         paintPanel.setVisible(true);
         paintPanel.setSize(1, 1);
+        layersPanel.setLayout(new BoxLayout(layersPanel, BoxLayout.Y_AXIS));
+        newLayerButton.setIcon(new ImageIcon(getClass().getResource("new.png")));
+        deleteLayerButton.setIcon(new ImageIcon(getClass().getResource("del.png")));
+        upButton.setIcon(new ImageIcon(getClass().getResource("up.png")));
+        downButton.setIcon(new ImageIcon(getClass().getResource("down.png")));
+        unionButton.setIcon(new ImageIcon(getClass().getResource("union.png")));
+        
         try {
             BufferedImage read = ImageIO.read(getClass().getResource("icon.png"));
             setIconImage(read);
@@ -73,7 +91,46 @@ public class GUI extends javax.swing.JFrame {
         
         
     }
-
+    
+    void refreshLayerPanel(){
+        layersPanel.removeAll();
+        ArrayList<Layer> layers = controller.getLayers();
+        for(int i = layers.size() - 1; i >= 0; --i){
+            JCheckBox checkBox = new JCheckBox((layers.get(i) == controller.getCurrentLayer() ? "* ": "  ") 
+                    + layers.get(i).getName(), layers.get(i).isVisible());
+            layersPanel.add(checkBox);
+            checkBox.setVisible(true);
+        }
+        layersPanel.doLayout();
+        layersPanel.repaint();
+    }
+    
+    void newLayer(){
+        controller.addLayer();
+        refreshLayerPanel();
+    }
+    
+    void deleteLayer(){
+        controller.removeLayer();
+        refreshLayerPanel();
+    }
+    
+    void upLayer(){
+        controller.upLayer();
+        refreshLayerPanel();
+    }
+    
+    void downLayer(){
+        controller.downLayer();
+        refreshLayerPanel();
+    }
+    
+    void union(){
+        controller.mergeVisibleLayer();
+        refreshLayerPanel();
+    }
+    
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -86,7 +143,8 @@ public class GUI extends javax.swing.JFrame {
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         createButton = new javax.swing.JButton();
-        mainPanel = new javax.swing.JPanel();
+        jDialog1 = new javax.swing.JDialog();
+        jFileChooser1 = new javax.swing.JFileChooser();
         x = new javax.swing.JLabel();
         y = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
@@ -96,6 +154,15 @@ public class GUI extends javax.swing.JFrame {
         instrumentPanel = new javax.swing.JPanel();
         propertyPanel = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        layersPanel = new javax.swing.JPanel();
+        newLayerButton = new javax.swing.JButton();
+        deleteLayerButton = new javax.swing.JButton();
+        upButton = new javax.swing.JButton();
+        downButton = new javax.swing.JButton();
+        unionButton = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        mainPanel = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         file = new javax.swing.JMenu();
         create = new javax.swing.JMenuItem();
@@ -104,7 +171,22 @@ public class GUI extends javax.swing.JFrame {
         save = new javax.swing.JMenuItem();
         saveAs = new javax.swing.JMenuItem();
         edit = new javax.swing.JMenu();
+        undo = new javax.swing.JMenuItem();
+        redo = new javax.swing.JMenuItem();
+        jMenuItem3 = new javax.swing.JMenuItem();
+        jMenuItem4 = new javax.swing.JMenuItem();
+        jMenuItem5 = new javax.swing.JMenuItem();
         layer = new javax.swing.JMenu();
+        newMenuItem = new javax.swing.JMenuItem();
+        deleteMenuItem = new javax.swing.JMenuItem();
+        upMenuItem = new javax.swing.JMenuItem();
+        downMenuItem = new javax.swing.JMenuItem();
+        unionMenuItem = new javax.swing.JMenuItem();
+        jMenuItem13 = new javax.swing.JMenuItem();
+        jMenuItem9 = new javax.swing.JMenuItem();
+        jMenuItem10 = new javax.swing.JMenuItem();
+        jMenuItem11 = new javax.swing.JMenuItem();
+        jMenuItem12 = new javax.swing.JMenuItem();
         instrument = new javax.swing.JMenu();
         help = new javax.swing.JMenu();
 
@@ -174,27 +256,34 @@ public class GUI extends javax.swing.JFrame {
                 .addContainerGap(45, Short.MAX_VALUE))
         );
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setTitle("Рисовальщик - Painter");
+        jDialog1.setTitle("Выбор файла");
+        jDialog1.setMinimumSize(new java.awt.Dimension(700, 400));
 
-        mainPanel.setBackground(new java.awt.Color(255, 230, 168));
-        mainPanel.setPreferredSize(new java.awt.Dimension(810, 610));
-        mainPanel.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
-            public void mouseMoved(java.awt.event.MouseEvent evt) {
-                mainPanelMouseMoved(evt);
+        jFileChooser1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jFileChooser1ActionPerformed(evt);
             }
         });
 
-        javax.swing.GroupLayout mainPanelLayout = new javax.swing.GroupLayout(mainPanel);
-        mainPanel.setLayout(mainPanelLayout);
-        mainPanelLayout.setHorizontalGroup(
-            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+        javax.swing.GroupLayout jDialog1Layout = new javax.swing.GroupLayout(jDialog1.getContentPane());
+        jDialog1.getContentPane().setLayout(jDialog1Layout);
+        jDialog1Layout.setHorizontalGroup(
+            jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jDialog1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jFileChooser1, javax.swing.GroupLayout.DEFAULT_SIZE, 714, Short.MAX_VALUE)
+                .addContainerGap())
         );
-        mainPanelLayout.setVerticalGroup(
-            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+        jDialog1Layout.setVerticalGroup(
+            jDialog1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jDialog1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jFileChooser1, javax.swing.GroupLayout.DEFAULT_SIZE, 400, Short.MAX_VALUE)
+                .addContainerGap())
         );
+
+        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Рисовальщик - Painter");
 
         x.setText("X : ");
 
@@ -237,7 +326,7 @@ public class GUI extends javax.swing.JFrame {
         propertyPanel.setLayout(propertyPanelLayout);
         propertyPanelLayout.setHorizontalGroup(
             propertyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 215, Short.MAX_VALUE)
+            .addGap(0, 0, Short.MAX_VALUE)
         );
         propertyPanelLayout.setVerticalGroup(
             propertyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -247,15 +336,85 @@ public class GUI extends javax.swing.JFrame {
         jPanel2.setBackground(new java.awt.Color(228, 150, 188));
         jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Слои"));
 
+        layersPanel.setBackground(new java.awt.Color(30, 213, 254));
+
+        javax.swing.GroupLayout layersPanelLayout = new javax.swing.GroupLayout(layersPanel);
+        layersPanel.setLayout(layersPanelLayout);
+        layersPanelLayout.setHorizontalGroup(
+            layersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 280, Short.MAX_VALUE)
+        );
+        layersPanelLayout.setVerticalGroup(
+            layersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 206, Short.MAX_VALUE)
+        );
+
+        jScrollPane3.setViewportView(layersPanel);
+
+        newLayerButton.setToolTipText("Новый слой");
+        newLayerButton.setName(""); // NOI18N
+        newLayerButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                newLayerButtonActionPerformed(evt);
+            }
+        });
+
+        deleteLayerButton.setToolTipText("Удалить слой");
+        deleteLayerButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteLayerButtonActionPerformed(evt);
+            }
+        });
+
+        upButton.setToolTipText("Вверх");
+        upButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                upButtonActionPerformed(evt);
+            }
+        });
+
+        downButton.setToolTipText("Вниз");
+        downButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                downButtonActionPerformed(evt);
+            }
+        });
+
+        unionButton.setToolTipText("Объединить видимые слои");
+        unionButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                unionButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addComponent(jScrollPane3)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addComponent(newLayerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(deleteLayerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(upButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(downButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(unionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 243, Short.MAX_VALUE)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addComponent(jScrollPane3)
+                .addGap(1, 1, 1)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(newLayerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(deleteLayerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(upButton, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(downButton, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(unionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -279,10 +438,30 @@ public class GUI extends javax.swing.JFrame {
                 .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
+        mainPanel.setBackground(new java.awt.Color(255, 230, 168));
+        mainPanel.setPreferredSize(new java.awt.Dimension(810, 610));
+        mainPanel.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
+            public void mouseMoved(java.awt.event.MouseEvent evt) {
+                mainPanelMouseMoved(evt);
+            }
+        });
+
+        javax.swing.GroupLayout mainPanelLayout = new javax.swing.GroupLayout(mainPanel);
+        mainPanel.setLayout(mainPanelLayout);
+        mainPanelLayout.setHorizontalGroup(
+            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 0, Short.MAX_VALUE)
+        );
+        mainPanelLayout.setVerticalGroup(
+            mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 610, Short.MAX_VALUE)
+        );
+
+        jScrollPane1.setViewportView(mainPanel);
+
         jMenuBar1.setBackground(new java.awt.Color(82, 65, 78));
         jMenuBar1.setBorder(new javax.swing.border.MatteBorder(null));
 
-        file.setBorder(null);
         file.setText("Файл");
 
         create.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
@@ -296,26 +475,141 @@ public class GUI extends javax.swing.JFrame {
 
         open.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
         open.setText("Открыть");
+        open.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                openActionPerformed(evt);
+            }
+        });
         file.add(open);
 
         pastOfBuffer.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
         pastOfBuffer.setText("Вставить из буфера");
+        pastOfBuffer.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                pastOfBufferActionPerformed(evt);
+            }
+        });
         file.add(pastOfBuffer);
 
         save.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
         save.setText("Сохранить");
+        save.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveActionPerformed(evt);
+            }
+        });
         file.add(save);
 
         saveAs.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
         saveAs.setText("Сохранить как");
+        saveAs.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                saveAsActionPerformed(evt);
+            }
+        });
         file.add(saveAs);
 
         jMenuBar1.add(file);
 
         edit.setText("Правка");
+
+        undo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Z, java.awt.event.InputEvent.CTRL_MASK));
+        undo.setText("Отменить");
+        undo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                undoActionPerformed(evt);
+            }
+        });
+        edit.add(undo);
+
+        redo.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_Y, java.awt.event.InputEvent.CTRL_MASK));
+        redo.setText("Вернуть");
+        redo.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                redoActionPerformed(evt);
+            }
+        });
+        edit.add(redo);
+
+        jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_X, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem3.setText("Вырезать");
+        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem3ActionPerformed(evt);
+            }
+        });
+        edit.add(jMenuItem3);
+
+        jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem4.setText("Копировать");
+        edit.add(jMenuItem4);
+
+        jMenuItem5.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem5.setText("Вставить");
+        edit.add(jMenuItem5);
+
         jMenuBar1.add(edit);
 
         layer.setText("Слой");
+
+        newMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
+        newMenuItem.setText("Создать");
+        newMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                newMenuItemActionPerformed(evt);
+            }
+        });
+        layer.add(newMenuItem);
+
+        deleteMenuItem.setText("Удалить");
+        deleteMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteMenuItemActionPerformed(evt);
+            }
+        });
+        layer.add(deleteMenuItem);
+
+        upMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_UP, java.awt.event.InputEvent.CTRL_MASK));
+        upMenuItem.setText("Вверх");
+        upMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                upMenuItemActionPerformed(evt);
+            }
+        });
+        layer.add(upMenuItem);
+
+        downMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_DOWN, java.awt.event.InputEvent.CTRL_MASK));
+        downMenuItem.setText("Вниз");
+        downMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                downMenuItemActionPerformed(evt);
+            }
+        });
+        layer.add(downMenuItem);
+
+        unionMenuItem.setText("Объединить видимые");
+        unionMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                unionMenuItemActionPerformed(evt);
+            }
+        });
+        layer.add(unionMenuItem);
+
+        jMenuItem13.setText("На новый слой");
+        layer.add(jMenuItem13);
+
+        jMenuItem9.setText("Изменить видимость");
+        layer.add(jMenuItem9);
+
+        jMenuItem10.setText("Переименовать");
+        layer.add(jMenuItem10);
+
+        jMenuItem11.setText("Изменить размер слоёв");
+        layer.add(jMenuItem11);
+
+        jMenuItem12.setText("Масштабировать слои");
+        layer.add(jMenuItem12);
+
         jMenuBar1.add(layer);
 
         instrument.setText("Инструменты");
@@ -331,27 +625,27 @@ public class GUI extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addGap(0, 0, 0)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
                         .addComponent(x, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(y, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(scale, javax.swing.GroupLayout.DEFAULT_SIZE, 506, Short.MAX_VALUE)
+                        .addComponent(scale, javax.swing.GroupLayout.DEFAULT_SIZE, 438, Short.MAX_VALUE)
                         .addGap(6, 6, 6)
                         .addComponent(persent))
-                    .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 825, Short.MAX_VALUE))
-                .addGap(0, 0, 0)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addComponent(mainPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 607, Short.MAX_VALUE)
+                .addGap(0, 0, 0)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addComponent(jLabel3)
@@ -378,6 +672,7 @@ public class GUI extends javax.swing.JFrame {
         int w = Integer.parseInt(width.getText());
         int h = Integer.parseInt(height.getText());
         controller.create(w, h);
+        refreshLayerPanel();
         paintPanel.repaint();
         createDiolog.setVisible(false);
     }//GEN-LAST:event_createButtonActionPerformed
@@ -392,6 +687,103 @@ public class GUI extends javax.swing.JFrame {
         controller.setScale(scale.getValue());
         paintPanel.repaint();
     }//GEN-LAST:event_scaleStateChanged
+
+    private void jFileChooser1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jFileChooser1ActionPerformed
+        if(evt.getActionCommand().equals("CancelSelection")){
+            jDialog1.setVisible(false);
+        }else{
+            File file = jFileChooser1.getSelectedFile();
+            if(file == null || file.isDirectory()){
+                return;
+            }
+            if(saveSelection){
+                controller.saveAs(file);
+            }else{
+                controller.open(file);
+                refreshLayerPanel();
+            }
+            repaint();
+            jDialog1.setVisible(false);
+        }
+    }//GEN-LAST:event_jFileChooser1ActionPerformed
+
+    private void openActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openActionPerformed
+        jDialog1.setVisible(true);
+        saveSelection = false;
+        jFileChooser1.setApproveButtonText("Открыть");
+    }//GEN-LAST:event_openActionPerformed
+
+    private void saveAsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveAsActionPerformed
+       jDialog1.setVisible(true);
+        saveSelection = true;
+        jFileChooser1.setApproveButtonText("Сохранить");
+    }//GEN-LAST:event_saveAsActionPerformed
+
+    private void saveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveActionPerformed
+        if(!controller.save()){
+            saveAsActionPerformed(null);
+        }
+    }//GEN-LAST:event_saveActionPerformed
+
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jMenuItem3ActionPerformed
+
+    private void undoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_undoActionPerformed
+        controller.undo();
+        repaint();
+    }//GEN-LAST:event_undoActionPerformed
+
+    private void redoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_redoActionPerformed
+        controller.redo();
+        repaint();
+    }//GEN-LAST:event_redoActionPerformed
+
+    private void pastOfBufferActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pastOfBufferActionPerformed
+        controller.pastOfBuffer();
+        refreshLayerPanel();
+        repaint();
+    }//GEN-LAST:event_pastOfBufferActionPerformed
+
+    private void newLayerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newLayerButtonActionPerformed
+        newLayer();
+    }//GEN-LAST:event_newLayerButtonActionPerformed
+
+    private void deleteLayerButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteLayerButtonActionPerformed
+        deleteLayer();
+    }//GEN-LAST:event_deleteLayerButtonActionPerformed
+
+    private void upButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_upButtonActionPerformed
+        upLayer();
+    }//GEN-LAST:event_upButtonActionPerformed
+
+    private void downButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downButtonActionPerformed
+        downLayer();
+    }//GEN-LAST:event_downButtonActionPerformed
+
+    private void unionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unionButtonActionPerformed
+        union();
+    }//GEN-LAST:event_unionButtonActionPerformed
+
+    private void newMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newMenuItemActionPerformed
+        newLayer();
+    }//GEN-LAST:event_newMenuItemActionPerformed
+
+    private void deleteMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deleteMenuItemActionPerformed
+        deleteLayer();
+    }//GEN-LAST:event_deleteMenuItemActionPerformed
+
+    private void upMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_upMenuItemActionPerformed
+        upLayer();
+    }//GEN-LAST:event_upMenuItemActionPerformed
+
+    private void downMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_downMenuItemActionPerformed
+        downLayer();
+    }//GEN-LAST:event_downMenuItemActionPerformed
+
+    private void unionMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unionMenuItemActionPerformed
+        union();
+    }//GEN-LAST:event_unionMenuItemActionPerformed
 
     /**
      * @param args the command line arguments
@@ -432,29 +824,54 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JMenuItem create;
     private javax.swing.JButton createButton;
     private javax.swing.JDialog createDiolog;
+    private javax.swing.JButton deleteLayerButton;
+    private javax.swing.JMenuItem deleteMenuItem;
+    private javax.swing.JButton downButton;
+    private javax.swing.JMenuItem downMenuItem;
     private javax.swing.JMenu edit;
     private javax.swing.JMenu file;
     private javax.swing.JTextField height;
     private javax.swing.JMenu help;
     private javax.swing.JMenu instrument;
     private javax.swing.JPanel instrumentPanel;
+    private javax.swing.JDialog jDialog1;
+    private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem10;
+    private javax.swing.JMenuItem jMenuItem11;
+    private javax.swing.JMenuItem jMenuItem12;
+    private javax.swing.JMenuItem jMenuItem13;
+    private javax.swing.JMenuItem jMenuItem3;
+    private javax.swing.JMenuItem jMenuItem4;
+    private javax.swing.JMenuItem jMenuItem5;
+    private javax.swing.JMenuItem jMenuItem9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JMenu layer;
+    private javax.swing.JPanel layersPanel;
     private javax.swing.JPanel mainPanel;
+    private javax.swing.JButton newLayerButton;
+    private javax.swing.JMenuItem newMenuItem;
     private javax.swing.JMenuItem open;
     private javax.swing.JMenuItem pastOfBuffer;
     private javax.swing.JLabel persent;
     private javax.swing.JPanel propertyPanel;
+    private javax.swing.JMenuItem redo;
     private javax.swing.JMenuItem save;
     private javax.swing.JMenuItem saveAs;
     private javax.swing.JSlider scale;
+    private javax.swing.JMenuItem undo;
+    private javax.swing.JButton unionButton;
+    private javax.swing.JMenuItem unionMenuItem;
+    private javax.swing.JButton upButton;
+    private javax.swing.JMenuItem upMenuItem;
     private javax.swing.JTextField width;
     private javax.swing.JLabel x;
     private javax.swing.JLabel y;

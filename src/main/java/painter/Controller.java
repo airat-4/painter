@@ -1,9 +1,14 @@
 package painter;
 
 import java.awt.*;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Created by airat on 29.11.15.
@@ -42,9 +47,15 @@ public class Controller {
         return true;
     }
 
-    public boolean pastOfBuffer() {// TODO
-        layerManager = new LayerManager();
-        return false;
+    public boolean pastOfBuffer() {
+        try {
+            layerManager = new LayerManager();
+        } catch (UnsupportedFlavorException ex) {
+            return false;
+        } catch (IOException ex) {
+            return false;
+        }
+        return true;
     }
 
 
@@ -108,5 +119,14 @@ public class Controller {
         return layerManager.save();
     }
 
+    public ArrayList<Layer> getLayers() {
+        return layerManager.getLayers();
+    }
+
+    public Layer getCurrentLayer() {
+        return layerManager.getCurrentLayer();
+    }
+
+    
 
 }
