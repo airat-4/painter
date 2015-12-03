@@ -15,10 +15,10 @@ import painter.Property;
  *
  * @author airat
  */
-public class Pensle extends Instrument{
+public class Pencil extends Instrument{
 
-    public Pensle() {
-        super("Карандаш", true);
+    public Pencil(String name, boolean icon, Property... property) {
+        super(name, icon, property);
     }
 
     @Override

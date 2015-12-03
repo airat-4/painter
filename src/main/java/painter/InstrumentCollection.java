@@ -2,6 +2,7 @@ package painter;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import painter.instruments.Pencil;
 
 /**
  * Created by airat on 28.11.15.
@@ -11,7 +12,8 @@ public class InstrumentCollection {
 
     static {
         //---------   Перечень инструмнтов   ----------
-
+        Property property = new Property(PropertyType.SLIDER, "Толщина кисти", 10, 50);
+        add(new Pencil("Карандаш", true, property));
     }
 
     private InstrumentCollection() {

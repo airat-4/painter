@@ -13,7 +13,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import painter.instruments.Pensle;
+import painter.instruments.Pencil;
 
 /**
  * Created by airat on 26.11.15.
@@ -28,7 +28,7 @@ public class LayerManager {
     private int height;
     private Rectangle area;
     private File file;
-    private Instrument currentInstrument = new Pensle();
+    private Instrument currentInstrument = InstrumentCollection.getInstrument("Карандаш");
     private int MAX_CACHE_SIZE = 20;
     public LayerManager(int width, int height) {
         this.width = width;
@@ -77,6 +77,12 @@ public class LayerManager {
         area = null;
     }
 
+    public Instrument getCurrentInstrument() {
+        return currentInstrument;
+    }
+    
+    
+
     public void removeLayer() {
         layers.remove(currentLayer);
         currentLayer.setDeleted(true);
@@ -119,16 +125,19 @@ public class LayerManager {
             }
         }
         boolean first = true;
-        for (int i = 0; i < layers.size(); i++) {
+        for (int i = 0; i < layers.size(); ) {
             if (first && layers.get(i).isVisible()) {
                 first = false;
                 layers.get(i).setImage(image);
+                i++;
                 continue;
             }
             if (layers.get(i).isVisible()) {
                 currentLayer = layers.get(i);
                 removeLayer();
-                --i;
+               
+            }else{
+                i++;
             }
         }
         for (Layer layer : layers) {
@@ -140,8 +149,13 @@ public class LayerManager {
         area = null;
     }
 
-    public void setVisible(boolean visible) {
-        currentLayer.setVisible(visible);
+    public void setVisible(String layerName, boolean visible) {
+        for (Layer layer : layers) {
+            if(layer.getName().equals(layerName)){
+                layer.setVisible(visible);
+                return;
+            }
+        }
     }
 
     public boolean renameLayer(String name) {
@@ -256,5 +270,15 @@ public class LayerManager {
     public Layer getCurrentLayer(){
         return currentLayer;
     }
+
+    public void setCurrentLayer(String currentLayer) {
+        for (Layer layer : layers) {
+            if(layer.getName().equals(currentLayer)){
+                this.currentLayer = layer;
+            }
+        }
+    }
+    
+    
 
 }

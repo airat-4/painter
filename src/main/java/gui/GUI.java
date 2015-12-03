@@ -4,20 +4,29 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
+import java.awt.Panel;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
-import painter.Controller;
-import painter.Layer;
+import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import painter.*;
+import painter.instruments.Pencil;
 
 
 public class GUI extends javax.swing.JFrame {
@@ -76,12 +85,13 @@ public class GUI extends javax.swing.JFrame {
         paintPanel.setVisible(true);
         paintPanel.setSize(1, 1);
         layersPanel.setLayout(new BoxLayout(layersPanel, BoxLayout.Y_AXIS));
+        jPanel3.setLayout(new BoxLayout(jPanel3, BoxLayout.Y_AXIS));
         newLayerButton.setIcon(new ImageIcon(getClass().getResource("new.png")));
         deleteLayerButton.setIcon(new ImageIcon(getClass().getResource("del.png")));
         upButton.setIcon(new ImageIcon(getClass().getResource("up.png")));
         downButton.setIcon(new ImageIcon(getClass().getResource("down.png")));
         unionButton.setIcon(new ImageIcon(getClass().getResource("union.png")));
-        
+        iniInstrumentPanel();
         try {
             BufferedImage read = ImageIO.read(getClass().getResource("icon.png"));
             setIconImage(read);
@@ -92,17 +102,113 @@ public class GUI extends javax.swing.JFrame {
         
     }
     
+    void iniInstrumentPropertyPanel(){
+        jPanel3.removeAll();
+        Instrument currentInstrument = controller.getCurrentInstrument();
+        if(currentInstrument == null)
+            return;
+        propertyPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Настройки инструмента (" + currentInstrument.getName() + ")" ));
+        Properties properties = currentInstrument.getProperties();
+        for (Property property : properties.getProperties()) {
+            if(property.type == PropertyType.SLIDER)
+                addSlider(property);
+        }
+        jPanel3.doLayout();
+        jPanel3.revalidate();
+        propertyPanel.doLayout();
+        propertyPanel.revalidate();
+        propertyPanel.repaint();
+    }
+    
+    void addSlider(final Property property){
+        JLabel label = new JLabel(property.name);
+        final JSlider slider = new JSlider(1, (int)property.otherSettings, (int)property.value);
+        jPanel3.add(label); 
+        jPanel3.add(slider);
+        slider.addChangeListener(new ChangeListener() {
+ 
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                property.value = slider.getValue();
+            }
+        });
+    }
+    
+    void iniInstrumentPanel(){
+        instrumentPanel.setLayout(new BoxLayout(instrumentPanel, BoxLayout.Y_AXIS));
+        Collection<Instrument> instrumentCollection = InstrumentCollection.getInstrumentCollection();
+        Iterator<Instrument> iterator = instrumentCollection.iterator();
+        mark:
+        for(;;){
+            JPanel panel = new JPanel();
+            
+            panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+            instrumentPanel.add(panel);
+            for(int i = 0; i < 5; ++i){
+                if(!iterator.hasNext())
+                    break mark;
+                Instrument instrument = null;
+                while(iterator.hasNext() && !(instrument = iterator.next()).isIcon());
+                JButton jButton = new JButton(instrument.getIcon());
+                jButton.setToolTipText(instrument.getName());
+                panel.add(jButton);
+                jButton.addMouseListener(new MouseAdapter() {
+
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        JButton jButton = (JButton) e.getSource();
+                        controller.setInstrument(jButton.getToolTipText());
+                        iniInstrumentPropertyPanel();
+                        paintPanel.repaint();
+                    }
+                    
+                });
+             }
+        }
+        
+    }
+    
     void refreshLayerPanel(){
         layersPanel.removeAll();
         ArrayList<Layer> layers = controller.getLayers();
+        MouseAdapter adapter = new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                JCheckBox checkBox = (JCheckBox)e.getSource();
+                boolean selected = checkBox.isSelected();
+                if(e.getX() < 20){
+                    controller.setVisible(checkBox.getText().substring(2), selected);
+                }else{
+              
+                    checkBox.setSelected(!selected);
+                    String layerName = checkBox.getText().substring(2);
+                    if(!controller.getCurrentLayer().getName().endsWith(layerName)){
+                        controller.setCurrentLayer(layerName);
+                        refreshLayerPanel();
+                    }
+                }
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if(e.getClickCount()== 2){
+                    jTextField1.setText(controller.getCurrentLayer().getName());
+                    jDialog2.setVisible(true);
+                }
+            }
+            
+            
+        };
         for(int i = layers.size() - 1; i >= 0; --i){
             JCheckBox checkBox = new JCheckBox((layers.get(i) == controller.getCurrentLayer() ? "* ": "  ") 
                     + layers.get(i).getName(), layers.get(i).isVisible());
             layersPanel.add(checkBox);
-            checkBox.setVisible(true);
+            checkBox.addMouseListener(adapter);
         }
         layersPanel.doLayout();
-        layersPanel.repaint();
+        layersPanel.revalidate();
+        jPanel2.revalidate();
+        jPanel2.repaint();
     }
     
     void newLayer(){
@@ -131,6 +237,7 @@ public class GUI extends javax.swing.JFrame {
     }
     
     
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -145,6 +252,9 @@ public class GUI extends javax.swing.JFrame {
         createButton = new javax.swing.JButton();
         jDialog1 = new javax.swing.JDialog();
         jFileChooser1 = new javax.swing.JFileChooser();
+        jDialog2 = new javax.swing.JDialog();
+        jTextField1 = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
         x = new javax.swing.JLabel();
         y = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
@@ -153,6 +263,8 @@ public class GUI extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         instrumentPanel = new javax.swing.JPanel();
         propertyPanel = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        jPanel3 = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
         layersPanel = new javax.swing.JPanel();
@@ -183,11 +295,9 @@ public class GUI extends javax.swing.JFrame {
         downMenuItem = new javax.swing.JMenuItem();
         unionMenuItem = new javax.swing.JMenuItem();
         jMenuItem13 = new javax.swing.JMenuItem();
-        jMenuItem9 = new javax.swing.JMenuItem();
         jMenuItem10 = new javax.swing.JMenuItem();
         jMenuItem11 = new javax.swing.JMenuItem();
         jMenuItem12 = new javax.swing.JMenuItem();
-        instrument = new javax.swing.JMenu();
         help = new javax.swing.JMenu();
 
         createDiolog.setTitle("Создать");
@@ -282,6 +392,40 @@ public class GUI extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
+        jDialog2.setMinimumSize(new java.awt.Dimension(275, 135));
+
+        jTextField1.setText("jTextField1");
+
+        jButton1.setText("Переименовать");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jDialog2Layout = new javax.swing.GroupLayout(jDialog2.getContentPane());
+        jDialog2.getContentPane().setLayout(jDialog2Layout);
+        jDialog2Layout.setHorizontalGroup(
+            jDialog2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jDialog2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jTextField1)
+                .addContainerGap())
+            .addGroup(jDialog2Layout.createSequentialGroup()
+                .addGap(73, 73, 73)
+                .addComponent(jButton1)
+                .addContainerGap(75, Short.MAX_VALUE))
+        );
+        jDialog2Layout.setVerticalGroup(
+            jDialog2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jDialog2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton1)
+                .addContainerGap(61, Short.MAX_VALUE))
+        );
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Рисовальщик - Painter");
 
@@ -321,16 +465,33 @@ public class GUI extends javax.swing.JFrame {
 
         propertyPanel.setBackground(new java.awt.Color(175, 153, 204));
         propertyPanel.setBorder(javax.swing.BorderFactory.createTitledBorder("Настройки инструмента"));
+        propertyPanel.setMinimumSize(new java.awt.Dimension(297, 100));
+        propertyPanel.setRequestFocusEnabled(false);
+
+        jPanel3.setBackground(new java.awt.Color(253, 172, 149));
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 283, Short.MAX_VALUE)
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 144, Short.MAX_VALUE)
+        );
+
+        jScrollPane2.setViewportView(jPanel3);
 
         javax.swing.GroupLayout propertyPanelLayout = new javax.swing.GroupLayout(propertyPanel);
         propertyPanel.setLayout(propertyPanelLayout);
         propertyPanelLayout.setHorizontalGroup(
             propertyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 0, Short.MAX_VALUE)
+            .addComponent(jScrollPane2)
         );
         propertyPanelLayout.setVerticalGroup(
             propertyPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 146, Short.MAX_VALUE)
+            .addComponent(jScrollPane2)
         );
 
         jPanel2.setBackground(new java.awt.Color(228, 150, 188));
@@ -342,7 +503,7 @@ public class GUI extends javax.swing.JFrame {
         layersPanel.setLayout(layersPanelLayout);
         layersPanelLayout.setHorizontalGroup(
             layersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 280, Short.MAX_VALUE)
+            .addGap(0, 283, Short.MAX_VALUE)
         );
         layersPanelLayout.setVerticalGroup(
             layersPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -394,13 +555,13 @@ public class GUI extends javax.swing.JFrame {
             .addComponent(jScrollPane3)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addComponent(newLayerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(deleteLayerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(upButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(downButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(unionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 45, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
         );
@@ -409,12 +570,12 @@ public class GUI extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addComponent(jScrollPane3)
                 .addGap(1, 1, 1)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(newLayerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(unionButton, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(deleteLayerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(upButton, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(downButton, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(unionButton, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(newLayerButton, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -422,18 +583,18 @@ public class GUI extends javax.swing.JFrame {
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(propertyPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(instrumentPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGap(0, 0, 0))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addComponent(instrumentPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, 0)
-                .addComponent(propertyPanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(propertyPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(0, 0, 0)
                 .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -598,10 +759,12 @@ public class GUI extends javax.swing.JFrame {
         jMenuItem13.setText("На новый слой");
         layer.add(jMenuItem13);
 
-        jMenuItem9.setText("Изменить видимость");
-        layer.add(jMenuItem9);
-
         jMenuItem10.setText("Переименовать");
+        jMenuItem10.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem10ActionPerformed(evt);
+            }
+        });
         layer.add(jMenuItem10);
 
         jMenuItem11.setText("Изменить размер слоёв");
@@ -611,9 +774,6 @@ public class GUI extends javax.swing.JFrame {
         layer.add(jMenuItem12);
 
         jMenuBar1.add(layer);
-
-        instrument.setText("Инструменты");
-        jMenuBar1.add(instrument);
 
         help.setText("Справка");
         jMenuBar1.add(help);
@@ -634,7 +794,7 @@ public class GUI extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(scale, javax.swing.GroupLayout.DEFAULT_SIZE, 438, Short.MAX_VALUE)
+                        .addComponent(scale, javax.swing.GroupLayout.DEFAULT_SIZE, 436, Short.MAX_VALUE)
                         .addGap(6, 6, 6)
                         .addComponent(persent))
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
@@ -644,7 +804,6 @@ public class GUI extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(0, 0, 0)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -673,8 +832,10 @@ public class GUI extends javax.swing.JFrame {
         int h = Integer.parseInt(height.getText());
         controller.create(w, h);
         refreshLayerPanel();
+        iniInstrumentPropertyPanel();
         paintPanel.repaint();
         createDiolog.setVisible(false);
+        
     }//GEN-LAST:event_createButtonActionPerformed
 
     private void mainPanelMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainPanelMouseMoved
@@ -701,6 +862,7 @@ public class GUI extends javax.swing.JFrame {
             }else{
                 controller.open(file);
                 refreshLayerPanel();
+                iniInstrumentPropertyPanel();
             }
             repaint();
             jDialog1.setVisible(false);
@@ -742,6 +904,7 @@ public class GUI extends javax.swing.JFrame {
     private void pastOfBufferActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pastOfBufferActionPerformed
         controller.pastOfBuffer();
         refreshLayerPanel();
+        iniInstrumentPropertyPanel();
         repaint();
     }//GEN-LAST:event_pastOfBufferActionPerformed
 
@@ -784,6 +947,18 @@ public class GUI extends javax.swing.JFrame {
     private void unionMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_unionMenuItemActionPerformed
         union();
     }//GEN-LAST:event_unionMenuItemActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        if(controller.renameLayer(jTextField1.getText())){
+            jDialog2.setVisible(false);
+            refreshLayerPanel();
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jMenuItem10ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem10ActionPerformed
+        jTextField1.setText(controller.getCurrentLayer().getName());
+        jDialog2.setVisible(true);
+    }//GEN-LAST:event_jMenuItem10ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -832,9 +1007,10 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JMenu file;
     private javax.swing.JTextField height;
     private javax.swing.JMenu help;
-    private javax.swing.JMenu instrument;
     private javax.swing.JPanel instrumentPanel;
+    private javax.swing.JButton jButton1;
     private javax.swing.JDialog jDialog1;
+    private javax.swing.JDialog jDialog2;
     private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
@@ -849,11 +1025,13 @@ public class GUI extends javax.swing.JFrame {
     private javax.swing.JMenuItem jMenuItem3;
     private javax.swing.JMenuItem jMenuItem4;
     private javax.swing.JMenuItem jMenuItem5;
-    private javax.swing.JMenuItem jMenuItem9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JTextField jTextField1;
     private javax.swing.JMenu layer;
     private javax.swing.JPanel layersPanel;
     private javax.swing.JPanel mainPanel;

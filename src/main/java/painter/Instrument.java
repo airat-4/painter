@@ -45,6 +45,11 @@ public abstract class Instrument {
         return new ImageIcon(getClass().getResource(name + ".png"));
     }
 
+    public boolean isIcon() {
+        return icon;
+    }
+
+    
     @Override
     public boolean equals(Object obj) {
         Instrument instrument = (Instrument) obj;

@@ -91,8 +91,15 @@ public class Controller {
         layerManager.redo();
     }
 
-    public void setVisible(boolean visible) {
-        layerManager.setVisible(visible);
+    public void setVisible(String layerName, boolean visible) {
+        layerManager.setVisible(layerName, visible);
+    }
+
+    public Instrument getCurrentInstrument() {
+        if(layerManager == null)
+            return null;
+        return layerManager.getCurrentInstrument();
+        
     }
 
     public void removeLayer() {
@@ -125,6 +132,10 @@ public class Controller {
 
     public Layer getCurrentLayer() {
         return layerManager.getCurrentLayer();
+    }
+
+    public void setCurrentLayer (String currentLayer) {
+        layerManager.setCurrentLayer(currentLayer);
     }
 
     
