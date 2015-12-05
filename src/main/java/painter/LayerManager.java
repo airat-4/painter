@@ -18,8 +18,8 @@ import painter.instruments.Pencil;
 /**
  * Created by airat on 26.11.15.
  */
-
 public class LayerManager {
+
     private int currentLayerId = 0;
     private ArrayList<Layer> layers = new ArrayList<Layer>();
     private Layer currentLayer;
@@ -30,6 +30,7 @@ public class LayerManager {
     private File file;
     private Instrument currentInstrument = InstrumentCollection.getInstrument("Карандаш");
     private int MAX_CACHE_SIZE = 20;
+
     public LayerManager(int width, int height) {
         this.width = width;
         this.height = height;
@@ -42,7 +43,7 @@ public class LayerManager {
     public LayerManager() throws UnsupportedFlavorException, IOException {
         Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
         if (t != null && t.isDataFlavorSupported(DataFlavor.imageFlavor)) {
-            Image image = (Image)t.getTransferData(DataFlavor.imageFlavor);
+            Image image = (Image) t.getTransferData(DataFlavor.imageFlavor);
             width = image.getWidth(null);
             height = image.getHeight(null);
             Layer layer = new Layer(this, "Слой " + ++currentLayerId, width, height);
@@ -50,7 +51,7 @@ public class LayerManager {
             layers.add(layer);
             cache = new Cache<>(layer, MAX_CACHE_SIZE);
             layer.setImage(image);
-        }else{
+        } else {
             throw new IOException("буффер обмена пуст");
         }
     }
@@ -62,7 +63,7 @@ public class LayerManager {
             width = image.getWidth();
             height = image.getHeight();
             Layer layer = new Layer(this, "Слой " + ++currentLayerId, width, height);
-            
+
             currentLayer = layer;
             layers.add(layer);
             cache = new Cache<>(layer, MAX_CACHE_SIZE);
@@ -71,6 +72,7 @@ public class LayerManager {
     }
 
     public void addLayer() {
+        flush();
         Layer layer = new Layer(this, "Слой " + ++currentLayerId, width, height);
         currentLayer = layer;
         layers.add(layer);
@@ -80,16 +82,16 @@ public class LayerManager {
     public Instrument getCurrentInstrument() {
         return currentInstrument;
     }
-    
-    
 
     public void removeLayer() {
+        flush();
         layers.remove(currentLayer);
         currentLayer.setDeleted(true);
-        if (layers.size() != 0)
+        if (layers.size() != 0) {
             currentLayer = layers.get(layers.size() - 1);
-        else
+        } else {
             currentLayer = null;
+        }
         area = null;
     }
 
@@ -116,6 +118,7 @@ public class LayerManager {
     }
 
     public void mergeVisibleLayer() {
+        flush();
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics graphics = image.getGraphics();
         flush();
@@ -125,7 +128,7 @@ public class LayerManager {
             }
         }
         boolean first = true;
-        for (int i = 0; i < layers.size(); ) {
+        for (int i = 0; i < layers.size();) {
             if (first && layers.get(i).isVisible()) {
                 first = false;
                 layers.get(i).setImage(image);
@@ -135,8 +138,8 @@ public class LayerManager {
             if (layers.get(i).isVisible()) {
                 currentLayer = layers.get(i);
                 removeLayer();
-               
-            }else{
+
+            } else {
                 i++;
             }
         }
@@ -151,7 +154,7 @@ public class LayerManager {
 
     public void setVisible(String layerName, boolean visible) {
         for (Layer layer : layers) {
-            if(layer.getName().equals(layerName)){
+            if (layer.getName().equals(layerName)) {
                 layer.setVisible(visible);
                 return;
             }
@@ -174,46 +177,46 @@ public class LayerManager {
     }
 
     private void flush() {
-        Image InstrumentImage = currentInstrument.flush(this);
-        if (InstrumentImage != null) {
+        if(currentLayer == null)
+            return ;
+        Image instrumentImage = currentInstrument.flush(this);
+        if (instrumentImage != null) {
             Image image = currentLayer.getImage();
-            BufferedImage newImage =
-                    new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_4BYTE_ABGR);
+            BufferedImage newImage
+                    = new BufferedImage(image.getWidth(null), image.getHeight(null), BufferedImage.TYPE_4BYTE_ABGR);
             Graphics graphics = newImage.getGraphics();
             graphics.drawImage(image, 0, 0, null);
+            graphics.drawImage(instrumentImage, 0, 0, null);
             currentLayer.setImage(newImage);
         }
     }
 
     public Image getImage() {
-        final int INDENT = 10;
-        BufferedImage image = new BufferedImage(width + INDENT, height + INDENT, BufferedImage.TYPE_4BYTE_ABGR);
-        Graphics graphics = image.getGraphics();
-        graphics.setColor(Color.WHITE);
-        graphics.fillRect(width + 1, 0, INDENT, height + INDENT);
-        graphics.fillRect(0, height + 1, width + INDENT, INDENT);
-        graphics.setColor(Color.black);
-        graphics.draw3DRect(-1, -1, width + 1, height + 1, true);
-        graphics.drawImage(getRealImage(), 0, 0, null);
-        return image;
-    }
-
-    private Image getRealImage() {
         BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_4BYTE_ABGR);
         Graphics graphics = image.getGraphics();
-        for (Layer layer : layers) {// TODO
-            graphics.drawImage(layer.getImage(), 0, 0, null);
-            if (layer.equals(currentLayer)) {
-                Image img = currentInstrument.getDevImage();
-                if(img!= null)
-                    graphics.drawImage(img, 0, 0, null);
+        for (Layer layer : layers) {
+            if (layer.isVisible()) {
+                graphics.drawImage(layer.getImage(), 0, 0, null);
+                if (layer.equals(currentLayer)) {
+                    Image img = currentInstrument.getDevImage();
+                    if (img != null) {
+                        graphics.drawImage(img, 0, 0, null);
+                    }
+                }
             }
+
         }
         return image;
     }
 
     public void action(Action action, int x, int y) {
-        currentInstrument.action(this, action, x, y);
+        Instrument instrument = currentInstrument;
+        do {
+            instrument = instrument.action(this, action, x, y);
+            if (instrument != null) {
+                flush();
+            }
+        } while (instrument != null);
     }
 
     void putInCache(Layer layer) {
@@ -222,14 +225,15 @@ public class LayerManager {
 
     public void undo() {
         flush();
-        int indexForInsert = layers.size() - 1;
+        int indexForInsert = layers.size();
         Layer prevLayer = cache.getPrev();
-        while (prevLayer.isDeleted()) {
+        if(prevLayer.isDeleted()) {
             prevLayer.setDeleted(false);
             layers.add(indexForInsert, prevLayer);
             prevLayer = cache.getPrev();
+        }else{
+            prevLayer.undo();
         }
-        prevLayer.undo();
     }
 
     public void redo() {
@@ -238,13 +242,13 @@ public class LayerManager {
     }
 
     public boolean saveAs(File file) {
-        file = new File(file.getPath()  + ".png");
+        file = new File(file.getPath() + ".png");
         System.out.println(file.getPath() + ".png");
-        
+
         flush();
         try (FileOutputStream fos = new FileOutputStream(file)) {
             String format = file.getName().substring(file.getName().lastIndexOf(".") + 1, file.getName().length());
-            ImageIO.write((RenderedImage) getRealImage(), format, fos);
+            ImageIO.write((RenderedImage) getImage(), format, fos);
 
         } catch (IOException e) {
             return false;
@@ -262,23 +266,30 @@ public class LayerManager {
     public void setArea(Rectangle area) {
         this.area = area;
     }
-    
-    public ArrayList<Layer> getLayers(){
+
+    public ArrayList<Layer> getLayers() {
         return layers;
     }
-    
-    public Layer getCurrentLayer(){
+
+    public Layer getCurrentLayer() {
         return currentLayer;
     }
 
     public void setCurrentLayer(String currentLayer) {
+        flush();
         for (Layer layer : layers) {
-            if(layer.getName().equals(currentLayer)){
+            if (layer.getName().equals(currentLayer)) {
                 this.currentLayer = layer;
             }
         }
     }
-    
-    
+
+    public int getWidth() {
+        return width;
+    }
+
+    public int getHeight() {
+        return height;
+    }
 
 }

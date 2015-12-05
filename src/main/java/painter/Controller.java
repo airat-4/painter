@@ -138,6 +138,15 @@ public class Controller {
         layerManager.setCurrentLayer(currentLayer);
     }
 
-    
+    public void actionPressed(int x,int y){
+        layerManager.action(Action.PRESSED, coordinateScale(x), coordinateScale(y));
+    }
 
+    public void actionReleased(int x,int y){
+        layerManager.action(Action.RELEASED, coordinateScale(x), coordinateScale(y));
+    }
+    
+    public void actionDragget(int x,int y){
+        layerManager.action(Action.DRAGGET, coordinateScale(x), coordinateScale(y));
+    }
 }

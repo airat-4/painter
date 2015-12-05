@@ -5,6 +5,9 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Panel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ComponentListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -20,9 +23,12 @@ import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JColorChooser;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
+import javax.swing.colorchooser.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import painter.*;
@@ -80,6 +86,7 @@ public class GUI extends javax.swing.JFrame {
     }
     
     public GUI() {
+        controller.create(500, 500);
         initComponents();
         mainPanel.add(paintPanel);
         paintPanel.setVisible(true);
@@ -92,6 +99,8 @@ public class GUI extends javax.swing.JFrame {
         downButton.setIcon(new ImageIcon(getClass().getResource("down.png")));
         unionButton.setIcon(new ImageIcon(getClass().getResource("union.png")));
         iniInstrumentPanel();
+        iniInstrumentPropertyPanel();
+        refreshLayerPanel();
         try {
             BufferedImage read = ImageIO.read(getClass().getResource("icon.png"));
             setIconImage(read);
@@ -112,6 +121,8 @@ public class GUI extends javax.swing.JFrame {
         for (Property property : properties.getProperties()) {
             if(property.type == PropertyType.SLIDER)
                 addSlider(property);
+            if(property.type == PropertyType.COLOR)
+                addColor(property);
         }
         jPanel3.doLayout();
         jPanel3.revalidate();
@@ -131,6 +142,59 @@ public class GUI extends javax.swing.JFrame {
             public void stateChanged(ChangeEvent e) {
                 property.value = slider.getValue();
             }
+        });
+    }
+    
+    void addColor(final Property property){
+        JLabel label = new JLabel(property.name);
+        final JPanel colorPanel = new JPanel();
+        JPanel panelchik = new JPanel();
+        panelchik.setBackground(Color.WHITE);
+        panelchik.setLayout(new BoxLayout(panelchik, BoxLayout.X_AXIS));
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
+        colorPanel.setBackground((Color) property.value);
+        panel.setBackground(new Color(253,172,149));
+        panel.setMaximumSize(new Dimension(350, 20));
+        panel.add(label);
+        panelchik.add(colorPanel);
+        panel.add(panelchik);
+        jPanel3.add(panel);
+        colorPanel.addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                final JDialog dialog = new JDialog();
+                dialog.setTitle("Выбор цвета");
+                final JColorChooser colorChooser = new JColorChooser();
+                AbstractColorChooserPanel[] chooserPanels = colorChooser.getChooserPanels();
+                colorChooser.removeChooserPanel(chooserPanels[0]);
+                colorChooser.removeChooserPanel(chooserPanels[1]);
+                colorChooser.removeChooserPanel(chooserPanels[2]);
+                colorChooser.removeChooserPanel(chooserPanels[4]);
+                colorChooser.setColor((Color) property.value);
+                JButton button = new JButton("Выбрать");
+                JPanel panel = new JPanel();
+                panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS)); 
+                panel.add(colorChooser);
+                panel.add(button);
+                dialog.add(panel);
+                dialog.pack(); 
+                dialog.setVisible(true);
+                button.addActionListener(new ActionListener() {
+
+                    @Override  
+                    public void actionPerformed(ActionEvent e) {
+                        Color color = colorChooser.getColor();
+                        property.value = color;
+                        colorPanel.setBackground(color);
+                        dialog.setVisible(false);
+                        jPanel3.repaint();
+                    }
+                });
+                
+            }
+            
         });
     }
     
@@ -160,6 +224,7 @@ public class GUI extends javax.swing.JFrame {
                         controller.setInstrument(jButton.getToolTipText());
                         iniInstrumentPropertyPanel();
                         paintPanel.repaint();
+                        
                     }
                     
                 });
@@ -178,6 +243,7 @@ public class GUI extends javax.swing.JFrame {
                 boolean selected = checkBox.isSelected();
                 if(e.getX() < 20){
                     controller.setVisible(checkBox.getText().substring(2), selected);
+                    paintPanel.repaint();
                 }else{
               
                     checkBox.setSelected(!selected);
@@ -219,21 +285,25 @@ public class GUI extends javax.swing.JFrame {
     void deleteLayer(){
         controller.removeLayer();
         refreshLayerPanel();
+        paintPanel.repaint();
     }
     
     void upLayer(){
         controller.upLayer();
         refreshLayerPanel();
+        paintPanel.repaint();
     }
     
     void downLayer(){
         controller.downLayer();
         refreshLayerPanel();
+        paintPanel.repaint();
     }
     
     void union(){
         controller.mergeVisibleLayer();
         refreshLayerPanel();
+        paintPanel.repaint();
     }
     
     
@@ -605,6 +675,17 @@ public class GUI extends javax.swing.JFrame {
             public void mouseMoved(java.awt.event.MouseEvent evt) {
                 mainPanelMouseMoved(evt);
             }
+            public void mouseDragged(java.awt.event.MouseEvent evt) {
+                mainPanelMouseDragged(evt);
+            }
+        });
+        mainPanel.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent evt) {
+                mainPanelMousePressed(evt);
+            }
+            public void mouseReleased(java.awt.event.MouseEvent evt) {
+                mainPanelMouseReleased(evt);
+            }
         });
 
         javax.swing.GroupLayout mainPanelLayout = new javax.swing.GroupLayout(mainPanel);
@@ -893,6 +974,7 @@ public class GUI extends javax.swing.JFrame {
 
     private void undoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_undoActionPerformed
         controller.undo();
+        refreshLayerPanel();
         repaint();
     }//GEN-LAST:event_undoActionPerformed
 
@@ -959,6 +1041,21 @@ public class GUI extends javax.swing.JFrame {
         jTextField1.setText(controller.getCurrentLayer().getName());
         jDialog2.setVisible(true);
     }//GEN-LAST:event_jMenuItem10ActionPerformed
+
+    private void mainPanelMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainPanelMousePressed
+        controller.actionPressed(evt.getX(), evt.getY());
+        paintPanel.repaint();
+    }//GEN-LAST:event_mainPanelMousePressed
+
+    private void mainPanelMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainPanelMouseReleased
+        controller.actionReleased(evt.getX(), evt.getY());
+        paintPanel.repaint();
+    }//GEN-LAST:event_mainPanelMouseReleased
+
+    private void mainPanelMouseDragged(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_mainPanelMouseDragged
+        controller.actionDragget(evt.getX(), evt.getY());
+        paintPanel.repaint();
+    }//GEN-LAST:event_mainPanelMouseDragged
 
     /**
      * @param args the command line arguments

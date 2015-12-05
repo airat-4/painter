@@ -1,5 +1,6 @@
 package painter;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
 import painter.instruments.Pencil;
@@ -12,8 +13,9 @@ public class InstrumentCollection {
 
     static {
         //---------   Перечень инструмнтов   ----------
-        Property property = new Property(PropertyType.SLIDER, "Толщина кисти", 10, 50);
-        add(new Pencil("Карандаш", true, property));
+        Property property = new Property(PropertyType.SLIDER, "Толщина кисти", 10, 100);
+        Property property1 = new Property(PropertyType.COLOR, "Цвет кисти   ", Color.BLACK);
+        add(new Pencil("Карандаш", true, property, property1));
     }
 
     private InstrumentCollection() {
