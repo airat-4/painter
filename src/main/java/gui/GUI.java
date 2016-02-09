@@ -100,7 +100,7 @@ public class GUI extends javax.swing.JFrame {
         unionButton.setIcon(new ImageIcon(getClass().getResource("union.png")));
         iniInstrumentPanel();
         iniInstrumentPropertyPanel();
-        refreshLayerPanel();
+        //refreshLayerPanel();
         try {
             BufferedImage read = ImageIO.read(getClass().getResource("icon.png"));
             setIconImage(read);
