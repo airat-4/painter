@@ -2,6 +2,7 @@ package painter;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
@@ -19,7 +20,7 @@ import painter.instruments.Pencil;
  * Created by airat on 26.11.15.
  */
 public class LayerManager {
-
+    public static Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
     private int currentLayerId = 0;
     private ArrayList<Layer> layers = new ArrayList<Layer>();
     private Layer currentLayer;
@@ -30,7 +31,7 @@ public class LayerManager {
     private File file;
     private Instrument currentInstrument = InstrumentCollection.getInstrument("Карандаш");
     private int MAX_CACHE_SIZE = 20;
-
+    
     public LayerManager(int width, int height) {
         this.width = width;
         this.height = height;
@@ -41,7 +42,7 @@ public class LayerManager {
     }
 
     public LayerManager() throws UnsupportedFlavorException, IOException {
-        Transferable t = Toolkit.getDefaultToolkit().getSystemClipboard().getContents(null);
+        Transferable t = clipboard.getContents(null);
         if (t != null && t.isDataFlavorSupported(DataFlavor.imageFlavor)) {
             Image image = (Image) t.getTransferData(DataFlavor.imageFlavor);
             width = image.getWidth(null);
@@ -174,6 +175,7 @@ public class LayerManager {
     public void setInstrument(String name) {
         flush();
         currentInstrument = InstrumentCollection.getInstrument(name);
+        
     }
 
     private void flush() {
@@ -215,6 +217,7 @@ public class LayerManager {
             instrument = instrument.action(this, action, x, y);
             if (instrument != null) {
                 flush();
+                currentInstrument = instrument;
             }
         } while (instrument != null);
     }
@@ -292,4 +295,11 @@ public class LayerManager {
         return height;
     }
 
+    public Rectangle getArea() {
+        return area;
+    }
+
+  
+
+    
 }

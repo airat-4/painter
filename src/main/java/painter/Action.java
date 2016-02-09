@@ -6,5 +6,6 @@ package painter;
 public enum Action {
     PRESSED,
     RELEASED,
-    DRAGGET
+    DRAGGET,
+    NONE
 }

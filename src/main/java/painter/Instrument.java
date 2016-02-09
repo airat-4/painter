@@ -22,7 +22,7 @@ public abstract class Instrument {
     public Image flush(LayerManager layerManager) {
         Image image = realImage;
         realImage = null;
-        if (icon) {
+        if (!icon) {
             layerManager.setArea(null);
         }
         return image;

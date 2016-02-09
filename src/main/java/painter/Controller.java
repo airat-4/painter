@@ -148,5 +148,25 @@ public class Controller {
     
     public void actionDragget(int x,int y){
         layerManager.action(Action.DRAGGET, coordinateScale(x), coordinateScale(y));
+    } 
+    
+    public void copy(){
+        layerManager.setInstrument("Копировать");
+        layerManager.action(Action.NONE, 0, 0);
     }
+    
+    public void past(){
+        if(layerManager != null){
+            layerManager.setInstrument("Вставить");
+            layerManager.action(Action.NONE, 0, 0);
+        } else{
+            pastOfBuffer();
+        }
+    }
+    
+    public void cut(){
+        layerManager.setInstrument("Вырезать");
+        layerManager.action(Action.NONE, 0, 0);
+    }
+    
 }

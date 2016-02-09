@@ -86,7 +86,7 @@ public class GUI extends javax.swing.JFrame {
     }
     
     public GUI() {
-        controller.create(500, 500);
+        //controller.create(500, 500);
         initComponents();
         mainPanel.add(paintPanel);
         paintPanel.setVisible(true);
@@ -213,6 +213,8 @@ public class GUI extends javax.swing.JFrame {
                     break mark;
                 Instrument instrument = null;
                 while(iterator.hasNext() && !(instrument = iterator.next()).isIcon());
+                if(!iterator.hasNext())
+                    break;
                 JButton jButton = new JButton(instrument.getIcon());
                 jButton.setToolTipText(instrument.getName());
                 panel.add(jButton);
@@ -784,10 +786,20 @@ public class GUI extends javax.swing.JFrame {
 
         jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_C, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem4.setText("Копировать");
+        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem4ActionPerformed(evt);
+            }
+        });
         edit.add(jMenuItem4);
 
         jMenuItem5.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_V, java.awt.event.InputEvent.CTRL_MASK));
         jMenuItem5.setText("Вставить");
+        jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jMenuItem5ActionPerformed(evt);
+            }
+        });
         edit.add(jMenuItem5);
 
         jMenuBar1.add(edit);
@@ -969,7 +981,8 @@ public class GUI extends javax.swing.JFrame {
     }//GEN-LAST:event_saveActionPerformed
 
     private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
-        // TODO add your handling code here:
+        controller.cut();
+        repaint();
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
     private void undoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_undoActionPerformed
@@ -1056,6 +1069,15 @@ public class GUI extends javax.swing.JFrame {
         controller.actionDragget(evt.getX(), evt.getY());
         paintPanel.repaint();
     }//GEN-LAST:event_mainPanelMouseDragged
+
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+        controller.copy();
+    }//GEN-LAST:event_jMenuItem4ActionPerformed
+
+    private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem5ActionPerformed
+        controller.past();
+        paintPanel.repaint();
+    }//GEN-LAST:event_jMenuItem5ActionPerformed
 
     /**
      * @param args the command line arguments

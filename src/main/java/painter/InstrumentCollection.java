@@ -3,7 +3,7 @@ package painter;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collection;
-import painter.instruments.Pencil;
+import painter.instruments.*;
 
 /**
  * Created by airat on 28.11.15.
@@ -16,6 +16,18 @@ public class InstrumentCollection {
         Property property = new Property(PropertyType.SLIDER, "Толщина кисти", 10, 100);
         Property property1 = new Property(PropertyType.COLOR, "Цвет кисти   ", Color.BLACK);
         add(new Pencil("Карандаш", true, property, property1));
+        
+        property = new Property(PropertyType.SLIDER, "Толщина линии", 10, 100);
+        property1 = new Property(PropertyType.COLOR, "Цвет линии   ", Color.BLACK);
+        add(new Line("Линия", true, property, property1));
+        
+        add(new Select("Выделить", true));
+        
+        add(new Copy("Копировать", false));
+        
+        add(new  Past("Вставить", false));
+        
+        add(new  Cut("Вырезать", false));
     }
 
     private InstrumentCollection() {
