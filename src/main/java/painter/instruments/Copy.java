@@ -47,12 +47,7 @@ public class Copy extends Instrument {
             if (area.width > 0 && area.height > 0) {
                 Image image = new BufferedImage(area.width, area.height, BufferedImage.TYPE_4BYTE_ABGR);
                 Graphics graphics = image.getGraphics();
-                for (Layer layer : layerManager.getLayers()) {
-                    if (layer.isVisible()) {
-                        graphics.drawImage(((BufferedImage) layer.getImage()).getSubimage(area.x, area.y, area.width, area.height), 0, 0, null);
-                    }
-                }
-
+                graphics.drawImage(((BufferedImage) layerManager.getCurrentLayer().getImage()).getSubimage(area.x, area.y, area.width, area.height), 0, 0, null);
                 LayerManager.clipboard.setContents(new TransferableImage(image), null);
             }
         }

@@ -33,6 +33,7 @@ public class LayerManager {
     private int MAX_CACHE_SIZE = 20;
     
     public LayerManager(int width, int height) {
+        currentInstrument.flush(this);
         this.width = width;
         this.height = height;
         Layer layer = new Layer(this, "Слой " + ++currentLayerId, width, height);
@@ -42,6 +43,7 @@ public class LayerManager {
     }
 
     public LayerManager() throws UnsupportedFlavorException, IOException {
+        currentInstrument.flush(this);
         Transferable t = clipboard.getContents(null);
         if (t != null && t.isDataFlavorSupported(DataFlavor.imageFlavor)) {
             Image image = (Image) t.getTransferData(DataFlavor.imageFlavor);
@@ -58,6 +60,7 @@ public class LayerManager {
     }
 
     public LayerManager(File file) throws IOException {
+        currentInstrument.flush(this);
         try (FileInputStream fis = new FileInputStream(file)) {
             this.file = file;
             BufferedImage image = ImageIO.read(fis);

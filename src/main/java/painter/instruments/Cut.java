@@ -43,10 +43,9 @@ public class Cut extends Instrument {
             if (area.width > 0 && area.height > 0) {
                 Image image = new BufferedImage(area.width, area.height, BufferedImage.TYPE_4BYTE_ABGR);
                 Graphics graphics = image.getGraphics();
-                for (Layer layer : layerManager.getLayers()) {
-                    if (layer.isVisible()) {
-                        graphics.drawImage(((BufferedImage) layer.getImage()).getSubimage(area.x, area.y, area.width, area.height), 0, 0, null);
-                        Image img = layer.getImage();
+                
+                        graphics.drawImage(((BufferedImage) layerManager.getCurrentLayer().getImage()).getSubimage(area.x, area.y, area.width, area.height), 0, 0, null);
+                        Image img = layerManager.getCurrentLayer().getImage();
                         BufferedImage newImage
                                 = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_4BYTE_ABGR);
                         Graphics gr = newImage.getGraphics();
@@ -58,9 +57,8 @@ public class Cut extends Instrument {
                             }
 
                         }
-                        layer.setImage(newImage);
-                    }
-                }
+                        layerManager.getCurrentLayer().setImage(newImage);
+                
 
                 LayerManager.clipboard.setContents(new TransferableImage(image), null);
             }
